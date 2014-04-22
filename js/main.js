@@ -1,8 +1,8 @@
 var PORT = "COM3";
 
 // äeLEDÇÃñæÇÈÇ≥ÅiRGBèáÅj
-var bright = [
-	[0, 200, 20],	// LED1
+var brightness = [
+	[0, 200, 50],	// LED1
 	[200, 200, 0],	// LED2
 	[200, 0, 0],	// LED3
 ]
@@ -14,38 +14,34 @@ var PIN = [
 	[11, null, null],	// LED3
 ]
 
+var color_dark = ["#0a8", "#aa0", "#a00"];
+var color_bright = ["#0fc", "#ff0", "#f00"];
+
+function enter(i){
+	$("td").eq(i).css("background-color", color_bright[i]);
+	on_LED(i);
+}
+function leave(i){
+	$("td").eq(i).css("background-color", color_dark[i]);
+	off_LED(i);
+}
 
 function on_LED(LED) {	
 	for(i=0; i<3; i++) {
 		if( PIN[LED][i] === null ) continue;
-		arduino.analogWrite(PIN[LED][i], bright[LED][i]);
+		document.arduino.analogWrite(PIN[LED][i], brightness[LED][i]);
 	}
 }
 
 function off_LED(LED) {
 	for(i=0; i<3; i++) {
 		if( PIN[LED][i] === null ) continue;
-		arduino.analogWrite(PIN[LED][i], 0);
+		document.arduino.analogWrite(PIN[LED][i], 0);
 	}
 }
 
+function setup() {
 
-var LED = 0;
-function change_LED() {
-
-	off_LED(LED);
-	
-	if( LED == 2 ) {
-		LED = 0;
-	} else {
-		LED++;
-	}
-	on_LED(LED);
-}
-
-
-if( document.arduino ) {
-	
 	var arduino = document.arduino;
 	
 	arduino.open(PORT);
@@ -56,9 +52,35 @@ if( document.arduino ) {
 			arduino.pinMode(PIN[i][j], true);
 		}
 	}
-	
-	setInterval( "change_LED()", 500 );
-	
-} else {
-	console.log("error");
+}
+
+
+$(function(){
+
+	for(var i=0; i<3; i++) {
+		$("td").eq(i).css("background-color", color_dark[i]);
+	}
+	$("td").hover(
+		function(){ enter($(this).index());},
+		function(){ leave($(this).index());}
+	);
+		
+		
+	if( document.arduino ) {
+		setup();
+	} else {
+		alert("Arduino.js is not installed.");
+	}
+});
+
+
+
+function changeDevicePort(){
+
+    PORT = $('#devPort').val();
+	try{
+		setup();
+	} catch(e) {
+		alert("Connection failed! ("+ PORT +")");
+	}
 }
